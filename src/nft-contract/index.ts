@@ -1,7 +1,6 @@
-//const crypto = require('crypto');
-//const { createHash } = await import('crypto');
+import * as crypto from 'crypto';
 import { NearContract, NearBindgen, near, call, view, LookupMap, UnorderedMap, Vector, UnorderedSet } from 'near-sdk-js'
-import { NFTContractMetadata, Token, TokenMetadata, internalNftMetadata } from './metadata';
+import {NFTContractMetadata, Token, TokenMetadata, internalNftMetadata, JsonToken} from './metadata';
 import { internalMint } from './mint';
 import { internalNftTokens, internalSupplyForOwner, internalTokensForOwner, internalTotalSupply } from './enumeration';
 import { internalNftToken, internalNftTransfer, internalNftTransferCall, internalResolveTransfer } from './nft_core';
@@ -54,11 +53,11 @@ export class Contract extends NearContract {
     }
 
     /*
-        MINT
+    MAIN EXTERNAL API METHODS
     */
     @call
     //The main minting method that define random NFT for player and calls nft_mint
-    nft_for_player({receiver_id}) {
+    nft_mint_for_player({username}) {
         let nft_data: { [key: string]: string } = {};
         let rand: number = Math.floor(Math.random() * 100);
         switch (true) {
@@ -67,60 +66,79 @@ export class Contract extends NearContract {
                 nft_data.title = "Machine Hunt";
                 nft_data.description = "Long-barreled firearm designed for accurate shooting, with a barrel that has a helical pattern of grooves (rifling) cut into the bore wall.";
                 nft_data.media = "https://bafkreibbwmh6t4s46hi5vw7qxcglkreadbqnf5ydqqxyuaqqwewbnwdckm.ipfs.nftstorage.link";
-                //nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
+                nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
                 break;
             case (rand < 31):
                 nft_data.extra = "gun-2";
                 nft_data.title = "Gauss Rifle";
                 nft_data.description = "Is a type of projectile accelerator consisting of one or more coils used as electromagnets in the configuration of a linear motor that accelerates a ferromagnetic or conducting projectile to high velocity.";
                 nft_data.media = "https://bafkreicqk2tfkao6ckwsqsfc6az3buwqkzhyoha46fyur74ygiu2yklv4u.ipfs.nftstorage.link";
-                //nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
+                nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
                 break;
             case (rand < 47):
                 nft_data.extra = "gun-3";
                 nft_data.title = "Rocket Launcher";
                 nft_data.description = "A launcher consisting of a tube or cluster of tubes (as a three-tube unit placed on the underside of diesel ship) for firing rocket shells. Trust me, you dont wanna feel its impact.";
                 nft_data.media = "https://bafkreidjqk52hl6o6upzas4cd6kd7exx4wgghdc4aqjwdev73vjbbbfe7m.ipfs.nftstorage.link";
-                //nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
+                nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
                 break;
             case (rand < 63):
                 nft_data.extra = "gun-4";
                 nft_data.title = "Destroyer of The Worlds";
                 nft_data.description = "Ever heard of a Death Star? Meet its younger brother. When unstoppable force meets immovable object... force wins, if its Destroyer of The Worlds.";
                 nft_data.media = "https://bafkreiekbwphahf25zwlgl3bbgxlwcqlq5lmqyu5p2nopalm5la4km4gl4.ipfs.nftstorage.link";
-                //nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
+                nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
                 break;
             case (rand < 79):
                 nft_data.extra = "gun-5";
                 nft_data.title = "ShotGun";
                 nft_data.description = "A short-barreled firearm designed to shoot a straight-walled cartridges, which usually discharges numerous small pellet-like spherical sub-projectiles.";
                 nft_data.media = "https://bafkreibtzmq624yrdc5s3ur67rtqt5p5vcmvbt5lllekyuy2kgsnnfqoom.ipfs.nftstorage.link";
-                //nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
+                nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
                 break;
             case (rand < 89):
                 nft_data.extra = "ship-1";
                 nft_data.title = "Nautilus";
                 nft_data.description = "This Ship utilizes marine engine that uses the heat of compression to ignite and power the ignition of diesel fuel. Legend told, it was used by Nemo itself.";
                 nft_data.media = "https://bafybeid6uipm6x2flcu4yqup7bg2kc5bfz2twsz5jzm5owdbnw6hui3lza.ipfs.nftstorage.link";
-                //nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
+                nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
                 break;
             case (rand < 99):
                 nft_data.extra = "ship-2";
                 nft_data.title = "Ragnarok";
                 nft_data.description = "When its time for a final battle, you'd better use Ragnarok. Maneuverable, fast and deadly hitting. Your foes have no chances.";
                 nft_data.media = "https://bafybeibn6by4wxdqujenwqedq72y2suiypic7z2pgufidazpd34ny5mjsy.ipfs.nftstorage.link";
-                //nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
+                nft_data.media_hash = crypto.createHash('sha256').update(nft_data.media).digest('base64');
                 break;
         }
 
-        let token_id = `${Date.now()}:${rand}`;
-        let metadata = new TokenMetadata(nft_data);
-        let perpetual_royalties = {};
+        let token_id: string = `${Date.now()}:${rand}`;
+        let metadata: TokenMetadata = new TokenMetadata(nft_data);
+        let receiver_id: string = username;
+        let perpetual_royalties: { [key: string]: number } = {};
 
+        console.log(token_id);
         this.nft_mint({ token_id, metadata, receiver_id, perpetual_royalties });
-        return
+
+        return nft_data.extra;
     }
 
+    @view
+    // The main view method that returns quantity of each collectable for player
+    nft_info_for_player({username}) {
+        const tokens: JsonToken[] = this.nft_tokens_for_owner(username);
+        let token_codes: { [key: string]: number } = {};
+        for (let token of tokens) {
+            console.log(token.metadata);
+            let item = token.metadata["extra"];
+            token_codes[item] = token_codes[item] ? token_codes[item] + 1 : 1;
+        }
+        return token_codes;
+    }
+
+    /*
+        MINT
+    */
     @call
     //implementation of the nft_mint method
     nft_mint({ token_id, metadata, receiver_id, perpetual_royalties }) {
@@ -180,7 +198,7 @@ export class Contract extends NearContract {
     }
 
     @call
-    //transfers the token to the receiver ID and returns the payout object that should be payed given the passed in balance. 
+    //transfers the token to the receiver ID and returns the payout object that should be paid given the passed in balance.
     nft_transfer_payout({ receiver_id, token_id, approval_id, memo, balance, max_len_payout }) {
         return internalNftTransferPayout({ contract: this, receiverId: receiver_id, tokenId: token_id, approvalId: approval_id, memo: memo, balance: balance, maxLenPayout: max_len_payout });
     }
@@ -213,15 +231,15 @@ export class Contract extends NearContract {
     }
 
     @view
-    //get the total supply of NFTs for a given owner
-    nft_tokens_for_owner({ account_id, from_index, limit }) {
-        return internalTokensForOwner({ contract: this, accountId: account_id, fromIndex: from_index, limit: limit });
-    }
-
-    @view
     //Query for all the tokens for an owner
     nft_supply_for_owner({ account_id }) {
         return internalSupplyForOwner({ contract: this, accountId: account_id });
+    }
+
+    @view
+    //get the total supply of NFTs for a given owner
+    nft_tokens_for_owner({ account_id, from_index, limit }) {
+        return internalTokensForOwner({ contract: this, accountId: account_id, fromIndex: from_index, limit: limit });
     }
 
     /*
