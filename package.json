@@ -2,17 +2,19 @@
   "name": "diesel-attack-nft-js",
   "version": "1.0.0",
   "description": "Diesel Attack game backend API server implementing NEAR smart contract to mint NFTs for players",
-  "main": "index.js",
+  "main": "server.ts",
   "type": "module",
   "scripts": {
-    "build": "near-sdk-js build src/nft-contract/index.ts build/nft.wasm",
+    "build": "near-sdk-js build src/nft-contract/index.ts build/contract.wasm",
     "test": "ava"
   },
   "author": "Diesel Attack Team",
   "license": "Apache-2.0",
   "dependencies": {
     "crypto": "^1.0.1",
+    "fastify": "^4.10.2",
     "lodash-es": "^4.17.21",
+    "near-api-js": "^1.1.0",
     "near-sdk-js": "0.4.0-5"
   },
   "devDependencies": {
